@@ -1,0 +1,53 @@
+{
+  "domain": "example.com.",
+  "type": "A",
+  "agreement": "match",
+  "results": [
+    {
+      "resolver": "cloudflare",
+      "endpoint": "https://cloudflare-dns.com/dns-query",
+      "transport": "https",
+      "rcode": "NOERROR",
+      "ad": false,
+      "duration_ms": 96.733,
+      "answers": [
+        {
+          "name": "example.com.",
+          "type": "A",
+          "value": "172.66.147.243",
+          "ttl": 58
+        },
+        {
+          "name": "example.com.",
+          "type": "A",
+          "value": "104.20.23.154",
+          "ttl": 58
+        }
+      ],
+      "group": 1
+    },
+    {
+      "resolver": "google",
+      "endpoint": "https://dns.google/dns-query",
+      "transport": "https",
+      "rcode": "NOERROR",
+      "ad": false,
+      "duration_ms": 103.329,
+      "answers": [
+        {
+          "name": "example.com.",
+          "type": "A",
+          "value": "104.20.23.154",
+          "ttl": 300
+        },
+        {
+          "name": "example.com.",
+          "type": "A",
+          "value": "172.66.147.243",
+          "ttl": 300
+        }
+      ],
+      "group": 1
+    }
+  ]
+}

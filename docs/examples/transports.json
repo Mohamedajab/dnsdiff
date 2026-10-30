@@ -1,0 +1,53 @@
+{
+  "domain": "example.com.",
+  "type": "A",
+  "agreement": "match",
+  "results": [
+    {
+      "resolver": "udp",
+      "endpoint": "udp://1.1.1.1",
+      "transport": "udp",
+      "rcode": "NOERROR",
+      "ad": false,
+      "duration_ms": 15.63,
+      "answers": [
+        {
+          "name": "example.com.",
+          "type": "A",
+          "value": "172.66.147.243",
+          "ttl": 187
+        },
+        {
+          "name": "example.com.",
+          "type": "A",
+          "value": "104.20.23.154",
+          "ttl": 187
+        }
+      ],
+      "group": 1
+    },
+    {
+      "resolver": "tcp",
+      "endpoint": "tcp://1.1.1.1",
+      "transport": "tcp",
+      "rcode": "NOERROR",
+      "ad": false,
+      "duration_ms": 26.245,
+      "answers": [
+        {
+          "name": "example.com.",
+          "type": "A",
+          "value": "104.20.23.154",
+          "ttl": 250
+        },
+        {
+          "name": "example.com.",
+          "type": "A",
+          "value": "172.66.147.243",
+          "ttl": 250
+        }
+      ],
+      "group": 1
+    }
+  ]
+}

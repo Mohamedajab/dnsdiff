@@ -1,0 +1,86 @@
+name: Check and release
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.x'
+          check-latest: true
+          cache: true
+      - run: go test -count=1 -coverprofile coverage.out ./...
+      - run: go vet ./...
+      - if: runner.os == 'Linux'
+        run: |
+          test -z "$(gofmt -l .)"
+          go test -race ./...
+          go test -run '^$' -fuzz FuzzDecode -fuzztime 20s -parallel 2
+          go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ runner.os }}
+          path: coverage.out
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.x'
+          cache: true
+      - name: Build archives
+        env:
+          CGO_ENABLED: '0'
+        run: |
+          mkdir -p dist release-stage
+          cp LICENSE THIRD_PARTY_NOTICES.md README.md release-stage/
+          for targetOS in linux darwin windows; do
+            for targetArch in amd64 arm64; do
+              extension=''
+              if [ "$targetOS" = windows ]; then extension='.exe'; fi
+              GOOS="$targetOS" GOARCH="$targetArch" go build -trimpath -ldflags "-s -w -X main.version=$GITHUB_REF_NAME" -o "release-stage/dnsdiff$extension" .
+              archive="dnsdiff_${GITHUB_REF_NAME}_${targetOS}_${targetArch}"
+              if [ "$targetOS" = windows ]; then
+                (cd release-stage && zip "../dist/$archive.zip" dnsdiff.exe LICENSE THIRD_PARTY_NOTICES.md README.md)
+              else
+                tar -czf "dist/$archive.tar.gz" -C release-stage dnsdiff LICENSE THIRD_PARTY_NOTICES.md README.md
+              fi
+              rm "release-stage/dnsdiff$extension"
+            done
+          done
+          (cd dist && sha256sum *.tar.gz *.zip > SHA256SUMS.txt)
+      - name: Publish release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('node:fs');
+            const tag = context.ref.replace('refs/tags/', '');
+            const {data: release} = await github.rest.repos.createRelease({
+              ...context.repo, tag_name: tag, name: tag,
+              body: 'DNS answer comparison over UDP, TCP and HTTPS. Includes TCP fallback, JSON reports and offline protocol tests.\n\nDownload the archive for your OS and architecture. SHA256SUMS.txt contains archive hashes.'
+            });
+            for (const name of fs.readdirSync('dist')) {
+              const data = fs.readFileSync(`dist/${name}`);
+              await github.rest.repos.uploadReleaseAsset({
+                ...context.repo, release_id: release.id, name, data,
+                headers: {'content-type': 'application/octet-stream', 'content-length': data.length}
+              });
+            }

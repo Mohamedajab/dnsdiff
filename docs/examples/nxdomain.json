@@ -1,0 +1,27 @@
+{
+  "domain": "dnsdiff-check.invalid.",
+  "type": "A",
+  "agreement": "match",
+  "results": [
+    {
+      "resolver": "cloudflare",
+      "endpoint": "https://cloudflare-dns.com/dns-query",
+      "transport": "https",
+      "rcode": "NXDOMAIN",
+      "ad": false,
+      "duration_ms": 114.196,
+      "answers": [],
+      "group": 1
+    },
+    {
+      "resolver": "google",
+      "endpoint": "https://dns.google/dns-query",
+      "transport": "https",
+      "rcode": "NXDOMAIN",
+      "ad": false,
+      "duration_ms": 110.699,
+      "answers": [],
+      "group": 1
+    }
+  ]
+}
